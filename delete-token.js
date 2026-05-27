@@ -1,8 +1,8 @@
 const { chromium } = require('@playwright/test');
-const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { execSync } = require('child_process');
 
 function getEncryptionKey() {
   const localStatePath = path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'User Data', 'Local State');
@@ -39,22 +39,11 @@ function decryptCookie(encryptedValue, key) {
 async function main() {
   const key = getEncryptionKey();
 
-  // Chrome exclusively locks Cookies — copy via .NET with FileShare.ReadWrite
+  // Chrome uses WAL journaling mode which allows concurrent SQLite readers
   const cookiesPath = path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'User Data', 'Default', 'Network', 'Cookies');
-  const tmpPath = path.join(process.env.TEMP, 'chrome_cookies_tmp.db');
-
-  const psScript = path.join(process.env.TEMP, 'copy_cookies.ps1');
-  fs.writeFileSync(psScript, [
-    `$src = [System.IO.File]::Open('${cookiesPath.replace(/\\/g, '\\\\')}', 'Open', 'Read', 'ReadWrite')`,
-    `$dst = [System.IO.File]::Create('${tmpPath.replace(/\\/g, '\\\\')}')`,
-    `$src.CopyTo($dst)`,
-    `$dst.Close(); $src.Close()`,
-  ].join('\r\n'));
-  execSync(`powershell -ExecutionPolicy Bypass -File "${psScript}"`, { stdio: 'inherit' });
-  fs.unlinkSync(psScript);
 
   const Database = require('better-sqlite3');
-  const db = new Database(tmpPath, { readonly: true });
+  const db = new Database(cookiesPath, { readonly: true, fileMustExist: true });
   const rows = db.prepare(`SELECT name, encrypted_value, path, expires_utc, is_secure, is_httponly, samesite
     FROM cookies WHERE host_key LIKE '%github.com%'`).all();
   db.close();
@@ -97,7 +86,6 @@ async function main() {
   await page.waitForTimeout(2000);
   console.log('Token deleted!');
   await browser.close();
-  fs.unlinkSync(tmpPath);
 }
 
 main().catch(console.error);
