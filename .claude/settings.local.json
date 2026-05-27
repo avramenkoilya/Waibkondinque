@@ -9,7 +9,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:context.lat)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "PowerShell($novaUrl = \"https://novavoice.app/\"; Write-Output \"Открываю страницу скачивания NovaVoice в браузере...\"; Start-Process $novaUrl)"
+      "PowerShell($novaUrl = \"https://novavoice.app/\"; Write-Output \"Открываю страницу скачивания NovaVoice в браузере...\"; Start-Process $novaUrl)",
+      "PowerShell(node --version)",
+      "PowerShell(python --version)",
+      "PowerShell(claude --version)"
     ]
   }
 }

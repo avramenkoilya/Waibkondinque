@@ -6,3 +6,18 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Claude Code MCP artifacts
+.playwright-mcp/
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Secrets
+.env
+.env.local
+
+# Python
+__pycache__/
+.venv/
